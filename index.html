@@ -9,74 +9,78 @@
 		<!-- Fonts -->
 		<link href="//fonts.googleapis.com/css?family=Raleway:100,600" rel="stylesheet" type="text/css">
 		<link href="css/home.css" rel="stylesheet" type="text/css">
-		<script type="text/javascript" src="js/d3.v3.js"></script>
 		<script type="text/javascript" src="js/jquery.min.js"></script>
+		<style>
+				canvas{ display: none;}
+		</style>
 	</head>
 	<body>
 
+		<canvas id="matrix"></canvas>
 
-		<textarea style="display:none;" id="exported"></textarea>
-		<div class="row">
-			<div class="header">
-				<span style="color: #00FFFF;">Explosions.</span> 
-				<span>Mousemove:
-				<select id="mousemoveSelector">
-					<option id="mousemove-yoloswag"       value="yoloswag"      >` #yoloswag</option>
-					<option id="mousemove-circlereverse"  value="circlereverse" >1 Circles In</option>
-					<option id="mousemove-basiccircle"    value="basiccircle"   >2 Circles Out</option>
-					<option id="mousemove-triangles"      value="triangles"     >3 Triangles</option>
-					<option id="mousemove-hexagon"        value="hexagon"       >4 Hexagon</option>
-					<option id="mousemove-fireworks"      value="fireworks"     >5 Fireworks</option>
-					<option id="mousemove-miniworks"      value="miniworks" selected>6 Mini Fireworks</option>
-					<option id="mousemove-foursquare"     value="foursquare"    >7 Four Square</option>
-					<option id="mousemove-jazz"           value="jazz"          >8 Jazz</option>
-					<option id="mousemove-confetti"       value="confetti"      >9 Confetti</option>
-					<option id="mousemove-linestomouse"   value="linestomouse"  >0 Lines to Mouse</option>
-					<option id="mousemove-biglines"       value="biglines"      >- Big Lines</option>
-					<option id="mousemove-drawing"        value="drawing"       >= Drawing</option>
-				</select>
-				</span>
+		<script type="text/javascript">
+			// geting canvas by id c
+			var c = document.getElementById("matrix");
+			var ctx = c.getContext("2d");
 
-				<span>Click:
-				<select id="mousedownSelector">
-					<option id="mousedown-yoloswag"       value="yoloswag"      >` #yoloswag</option>
-					<option id="mousedown-circlereverse"  value="circlereverse" >1 Circles In</option>
-					<option id="mousedown-basiccircle"    value="basiccircle"   >2 Circles Out</option>
-					<option id="mousedown-triangles"      value="triangles"     >3 Triangles</option>
-					<option id="mousedown-hexagon"        value="hexagon" selected>4 Hexagon</option>
-					<option id="mousedown-fireworks"      value="fireworks"     >5 Fireworks</option>
-					<option id="mousedown-miniworks"      value="miniworks"     >6 Mini Fireworks</option>
-					<option id="mousedown-foursquare"     value="foursquare"    >7 Four Square</option>
-					<option id="mousedown-jazz"           value="jazz"          >8 Jazz</option>
-					<option id="mousedown-confetti"       value="confetti"      >9 Confetti</option>
-					<option id="mousedown-linestomouse"   value="linestomouse"  >0 Lines to Mouse</option>
-					<option id="mousedown-biglines"       value="biglines"      >- Big Lines</option>
-					<option id="mousedown-drawing"        value="drawing"       >= Drawing</option>
-				</select>
-				</span>
-			</div>
-		</div>
-		<div class="row">
-			<div class="controls">
-				<button class="button-record" id="button-record-start">Record</button>
-				<button class="button-record" id="button-record-stop">Stop</button>
-				<button class="button-record" id="button-record-reset">Reset</button>
-				<input  class="button-record" value="1" size="1" style="text-align: center;" id="input-play-timescale" />
-				<button class="button-record" id="button-play-start">Play</button>
-				<button class="button-record" id="button-play-stop">Stop</button>
-				<button class="button-record" id="button-play-reset">Reset</button>
-				<button style="display:none;" class="button-export" id="button-play-import" onclick="importFromTextarea();">Import</button>
-				<button style="display:none;" class="button-export" id="button-play-export" onclick="exportToTextarea();">Export</button>
-				<button class="button-record" id="button-controls" onclick="$('body').toggleClass('nocontrols');">Controls</button>
-				<button id="button-export-exporter" onclick="toggleExporter();">Import/Export</button>
-			</div>
-		</div>
+			//making the canvas full screen
+			c.height = window.innerHeight-5;
+			c.width = window.innerWidth-5;
 
-		<div id="svgContainer"></div>
-		
-		<!--<script type="text/javascript" src="js/string.js"></script>-->
-		<script type="text/javascript" src="js/visuals.js"></script>
-		<script type="text/javascript" src="js/explosions.js"></script>
+			//chinese characters - taken from the unicode charset
+			var matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
+
+			//converting the string into an array of single characters
+			matrix = matrix.split("");
+
+			var font_size = 10;
+			var columns = c.width/font_size; //number of columns for the rain
+			//an array of drops - one per column
+			var drops = [];
+			//x below is the x coordinate
+			//1 = y co-ordinate of the drop(same for every drop initially)
+			for(var x = 0; x < columns; x++){
+				drops[x] = 1; 
+			}
+
+			var interv = 34;
+
+			//drawing the characters
+			function draw()
+			{
+				//Black BG for the canvas
+				//translucent BG to show trail
+				ctx.fillStyle = "rgba(0, 0, 0, 0.04)";
+				ctx.fillRect(0, 0, c.width, c.height);
+
+				ctx.fillStyle = "#0F0"; //green text
+				ctx.font = font_size + "px arial";
+				//looping over drops
+				for(var i = 0; i < drops.length; i++)
+				{
+					//a random chinese character to print
+					var text = matrix[Math.floor(Math.random()*matrix.length)];
+					//x = i*font_size, y = value of drops[i]*font_size
+					ctx.fillText(text, i*font_size, drops[i]*font_size);
+
+					//sending the drop back to the top randomly after it has crossed the screen
+					//adding a randomness to the reset to make the drops scattered on the Y axis
+					if(drops[i]*font_size > c.height && Math.random() > 0.975){
+						drops[i] = 0;
+					}
+
+					//incrementing Y coordinate
+					drops[i]++;
+				}
+			}
+
+			setInterval(draw, interv);
+
+			setTimeout(function(){
+				$('#matrix').fadeIn(2000);
+			}, 1200+window.innerHeight);
+			
+			</script>
 
 	</body>
 </html>
